@@ -18,7 +18,3 @@ mobile/ios/Runner/libnative.a
 
 #ignore keystores
 *.jks
-
-# ignore docker volumes
-volumes/bitcoin/
-!./volumes/bitcoin/bitcoin.conf
