@@ -51,3 +51,11 @@ jobs:
       - name: Generate FFI bindings
         run: just gen
       - run: cargo clippy --all-targets -- -D warnings
+
+  nigiri:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install nigiri
+        run: |
+          curl https://getnigiri.vulpem.com | bash
+          nigiri start
