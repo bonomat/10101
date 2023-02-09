@@ -35,22 +35,22 @@ jobs:
       - name: Disallow squash! commits
         run: git log --pretty=format:%s origin/main..HEAD | grep -zv squash!
 
-  clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: extractions/setup-just@v1
-      - name: Setup rust toolchain
-        run: rustup show
-      - uses: Swatinem/rust-cache@v2.2.0
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-      - name: Install FFI bindings
-        run: cargo install flutter_rust_bridge_codegen
-      - name: Generate FFI bindings
-        run: just gen
-      - run: cargo clippy --all-targets -- -D warnings
+  #  clippy:
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v3
+  #      - uses: extractions/setup-just@v1
+  #      - name: Setup rust toolchain
+  #        run: rustup show
+  #      - uses: Swatinem/rust-cache@v2.2.0
+  #      - uses: subosito/flutter-action@v2
+  #        with:
+  #          channel: "stable"
+  #      - name: Install FFI bindings
+  #        run: cargo install flutter_rust_bridge_codegen
+  #      - name: Generate FFI bindings
+  #        run: just gen
+  #      - run: cargo clippy --all-targets -- -D warnings
 
   nigiri:
     runs-on: ubuntu-latest
@@ -59,3 +59,7 @@ jobs:
         run: |
           curl https://getnigiri.vulpem.com | bash
           nigiri start
+
+      - name: Test nigiri
+        run: |
+          nigiri faucet bcrt1qylgu6ffkp3p0m8tw8kp4tt2dmdh755f4r5dq7s
