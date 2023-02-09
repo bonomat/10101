@@ -59,6 +59,9 @@ jobs:
         run: |
           curl https://getnigiri.vulpem.com | bash
           nigiri start
+          sleep 2
+          docker ps -a
+          docker logs bitcoin
           nigiri faucet bcrt1qylgu6ffkp3p0m8tw8kp4tt2dmdh755f4r5dq7s
 
       - name: Test nigiri
