@@ -6,7 +6,15 @@ services:
     user: 1000:1000
     container_name: bitcoin
     command:
-      - -datadir=config
+      - -regtest=1
+      - -port=18444
+      - -rpcport=18443
+      - -txindex=1
+      - -rpcuser=admin1
+      - -rpcpassword=123
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -fallbackfee=0.1
     ports:
       - 18443:18443
       - 18444:18444
@@ -14,7 +22,7 @@ services:
       - 28332:28332
       - 28333:28333
     volumes:
-      - ./volumes/bitcoin/:/config
+      - bitcoin:/config
     restart: unless-stopped
 
   # Block explorer server
@@ -46,7 +54,7 @@ services:
       - 50000:50000
       - 30000:30000
     volumes:
-      - ./volumes/bitcoin/:/config
+      - bitcoin:/config
     restart: unless-stopped
 
   # Block explorer frontend
@@ -85,3 +93,6 @@ services:
 networks:
   default:
     name: nigiri
+
+volumes:
+  bitcoin:
