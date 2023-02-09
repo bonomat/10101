@@ -1,6 +1,5 @@
-version: '3.8'
+version: "3.8"
 services:
-
   # RPC daemon
   bitcoin:
     image: ghcr.io/vulpemventures/bitcoin:latest
