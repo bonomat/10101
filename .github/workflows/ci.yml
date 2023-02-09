@@ -55,15 +55,12 @@ jobs:
   nigiri:
     runs-on: ubuntu-latest
     steps:
-      - name: Install nigiri
+      - - uses: actions/checkout@v3
+      - name: Start containers
         run: |
-          curl https://getnigiri.vulpem.com | bash
-          nigiri start
-          sleep 2
-          docker ps -a
-          docker logs bitcoin
-          nigiri faucet bcrt1qylgu6ffkp3p0m8tw8kp4tt2dmdh755f4r5dq7s
+          docker-compose up -d
+          sleep 20
 
-      - name: Test nigiri
+      - name: Test containers
         run: |
-          nigiri faucet bcrt1qylgu6ffkp3p0m8tw8kp4tt2dmdh755f4r5dq7s
+          curl -d '{"address":"bcrt1qylgu6ffkp3p0m8tw8kp4tt2dmdh755f4r5dq7s", "amount":"0.1"}' -H "Content-Type: application/json" -X POST http://localhost:3000/faucet
