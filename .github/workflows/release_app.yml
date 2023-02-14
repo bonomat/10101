@@ -44,4 +44,3 @@ jobs:
         working-directory: mobile
         run: flutter build ipa
       - run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
-
