@@ -21,8 +21,18 @@ match(
 default_platform(:ios)
 
 platform :ios do
-  desc "Push a new beta build to TestFlight"
+
+  lane :setup_ci_certs do
+    setup_ci
+    sync_code_signing(
+      type: "appstore",
+      readonly: true
+    )
+  end
+
+
   lane :beta do
+    desc "Push a new beta build to TestFlight"
     setup_ci if ENV['CI']
     build_app(
       skip_build_archive: true,
