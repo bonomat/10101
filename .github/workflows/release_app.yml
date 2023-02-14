@@ -39,7 +39,7 @@ jobs:
         run: just ios
       - name: Add signing certificates
         working-directory: mobile/ios
-        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane match appstore --readonly --verbose
+        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane setup_ci_certs --verbose
       - name: Build ipa
         working-directory: mobile
         run: flutter build ipa
