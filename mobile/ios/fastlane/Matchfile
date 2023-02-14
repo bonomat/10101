@@ -1,0 +1,9 @@
+git_url("https://github.com/get10101/fastlane-match.git")
+
+storage_mode("git")
+
+type("development") # The default type, can be: appstore, adhoc, enterprise or development
+
+app_identifier("finance.get10101.app")
+username("philipp@hoenisch.at")
+
