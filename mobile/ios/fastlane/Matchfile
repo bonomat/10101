@@ -6,4 +6,3 @@ type("appstore") # The default type, can be: appstore, adhoc, enterprise or deve
 
 app_identifier("finance.get10101.app")
 username("philipp@hoenisch.at")
-
