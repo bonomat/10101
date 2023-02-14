@@ -22,7 +22,11 @@ jobs:
       - uses: extractions/setup-just@v1
       - name: Add signing certificates
         working-directory: mobile/ios
-        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane setup_ci_certs --verbose
+        run: |
+          MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane setup_ci_certs --verbose
+          security find-identity -v -p codesigning
+      - name: Show codesigning ids
+        run: security find-identity -v -p codesigning
       - name: Setup rust toolchain
         run: rustup show
       - uses: Swatinem/rust-cache@v2.2.0
