@@ -19,5 +19,9 @@ bridge_generated.h
 mobile/android/app/src/main/jniLibs/
 mobile/ios/Runner/libnative.a
 
+# build artifacts
+
+build
+
 #ignore keystores
 *.jks

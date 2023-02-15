@@ -18,10 +18,6 @@ match(
     readonly: true,
     )
 
-match(
-    type: "development",
-    readonly: true,
-    )
 
 default_platform(:ios)
 
@@ -33,10 +29,10 @@ platform :ios do
       type: "appstore",
       readonly: true
     )
-    sync_code_signing(
-      type: "development",
-      readonly: true
-    )
+#     sync_code_signing(
+#       type: "development",
+#       readonly: true
+#     )
   end
 
 
