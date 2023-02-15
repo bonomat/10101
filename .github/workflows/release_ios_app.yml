@@ -83,6 +83,7 @@ jobs:
 
       # Build and sign the ipa using a single flutter command
       - name: Building IPA
+        working-directory: mobile/ios
         run: flutter build ipa --release --export-options-plist=$(pwd)/exportOptions.plist
 
       # Upload ipa file to Testflight
