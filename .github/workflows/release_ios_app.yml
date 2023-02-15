@@ -21,14 +21,18 @@ jobs:
           P12_PASSWORD: ${{ secrets.APPSTORE_CERT_PASSWORD }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          CERTIFICATE_IPHONE_DISTRIBUTION_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_BASE64 }}
+          CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD }}
         run: |
           # create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          CERTIFICATE_PATH_IPHONE_DISTRIBUTION=$RUNNER_TEMP/build_certificate_iphone_distribution.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          echo -n "$CERTIFICATE_IPHONE_DISTRIBUTION_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DISTRIBUTION
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
 
           # create temporary keychain
@@ -39,6 +43,10 @@ jobs:
           # import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH_IPHONE_DISTRIBUTION -P "$CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
 
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
@@ -47,15 +55,6 @@ jobs:
 
       - name: Show codesigning ids
         run: security find-identity -v -p codesigning
-
-#      # Install flutter
-#      - name: Flutter get
-#        uses: subosito/flutter-action@v1
-#        with:
-#          flutter-version: '2.10.1'
-#
-#      # Install your project's dependencies
-#      - run: flutter pub get
 
       - name: Setup rust toolchain
         run: rustup show
