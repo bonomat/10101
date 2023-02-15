@@ -68,19 +68,20 @@ platform :ios do
       desc "Push a new beta build to TestFlight"
 
       setup_ci
-      sync_code_signing(
-        type: "appstore",
-        app_identifier: 'finance.get10101.app',
-        readonly: false
+
+      match(
+          type: "appstore",
+          readonly: true,
       )
 
-      build_app(scheme: "appstore")
-#       app_store_connect_api_key(
-#         is_key_content_base64: true,
-#         in_house: false, # if it is enterprise or not
+#       sync_code_signing(
+#         type: "appstore",
+#         app_identifier: 'finance.get10101.app',
+#         readonly: false
 #       )
+
+      build_app(scheme: "appstore")
       upload_to_testflight(
-        skip_submission: true,
         skip_waiting_for_build_processing: true
       )
     end
