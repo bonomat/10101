@@ -4,21 +4,28 @@
 <dict>
     <key>compileBitcode</key>
     <true/>
+
     <key>method</key>
     <string>app-store</string>
+
     <key>provisioningProfiles</key>
     <dict>
         <key>finance.get10101.app</key>
         <string>match AppStore finance.get10101.app</string>
     </dict>
+
     <key>signingCertificate</key>
     <string>iOS Distribution</string>
+
     <key>signingStyle</key>
     <string>manual</string>
+
     <key>stripSwiftSymbols</key>
     <true/>
+
     <key>teamID</key>
     <string>V3D64P9D6W</string>
+
     <key>thinning</key>
     <string>&lt;none&gt;</string>
 </dict>

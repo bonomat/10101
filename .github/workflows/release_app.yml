@@ -44,12 +44,9 @@ jobs:
         run: just deps-ios
       - name: Build ios files
         run: just ios
-      - name: Build ios package 1/2
+      - name: Build ios package 1
         working-directory: mobile/ios
-        run: xcodebuild -workspace Runner.xcworkspace -scheme Runner -sdk iphoneos -configuration Release archive -archivePath $PWD/build/Runner.xcarchive
-      - name: Build ios package 2/2
-        working-directory: mobile/ios
-        run: xcodebuild -exportArchive -archivePath $PWD/build/Runner.xcarchive -exportOptionsPlist exportOptions.plist -exportPath $PWD/build/Runner.ipa
+        run: flutter build ipa --export-options-plist=/Users/bonomat/src/github/itchysats/10101/mobile/ios/exportOptions.plist
       - name: Publish to appstore
         working-directory: mobile/ios
         run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
