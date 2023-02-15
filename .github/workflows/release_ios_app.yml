@@ -23,16 +23,20 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           CERTIFICATE_IPHONE_DISTRIBUTION_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_BASE64 }}
           CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD }}
+          CERTIFICATE_IPHONE_DEV_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DEV_BASE64 }}
+          CERTIFICATE_IPHONE_DEV_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DEV_PASSWORD }}
         run: |
           # create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           CERTIFICATE_PATH_IPHONE_DISTRIBUTION=$RUNNER_TEMP/build_certificate_iphone_distribution.p12
+          CERTIFICATE_PATH_IPHONE_DEV=$RUNNER_TEMP/build_certificate_iphone_dev.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
           echo -n "$CERTIFICATE_IPHONE_DISTRIBUTION_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DISTRIBUTION
+          echo -n "$CERTIFICATE_IPHONE_DEV_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DEV
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
 
           # create temporary keychain
@@ -46,6 +50,10 @@ jobs:
           
           # import certificate to keychain
           security import $CERTIFICATE_PATH_IPHONE_DISTRIBUTION -P "$CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH_IPHONE_DEV -P "$CERTIFICATE_IPHONE_DEV_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           # apply provisioning profile
