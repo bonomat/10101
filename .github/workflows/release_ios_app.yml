@@ -63,8 +63,6 @@ jobs:
       - name: Show codesigning ids
         run: security find-identity -v -p codesigning
 
-      - uses: Swatinem/rust-cache@v2.2.0
-
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
@@ -73,12 +71,10 @@ jobs:
 
       # Build and sign the ipa using a single flutter command
       - name: Building IPA
-        working-directory: mobile
         run: flutter build ipa
 
       # Upload ipa file to Testflight
       - name: Publish to testflight
-        working-directory: mobile
         run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/example_flutter_app.ipa --apiKey ${ALTOOL_API_KEY} --apiIssuer ${ALTOOL_API_ISSUER}
         env:
           ALTOOL_API_KEY: ${{ secrets.ALTOOL_API_KEY }}
