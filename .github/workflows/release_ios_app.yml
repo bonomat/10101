@@ -14,83 +14,91 @@ jobs:
         uses: actions/checkout@v2
 
       # Install the Apple certificate and provisioning profile
-      - name: Install the Apple certificate and provisioning profile
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPSTORE_CERT_BASE64 }}
-          P12_PASSWORD: ${{ secrets.APPSTORE_CERT_PASSWORD }}
-          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
-          BUILD_PROVISION_PROFILE_IOS_DEV_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_IOS_DEV_BASE64 }}
-          BUILD_PROVISION_PROFILE_APP_STORE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_APP_STORE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          CERTIFICATE_IPHONE_DISTRIBUTION_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_BASE64 }}
-          CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD }}
-          CERTIFICATE_IPHONE_DEV_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DEV_BASE64 }}
-          CERTIFICATE_IPHONE_DEV_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DEV_PASSWORD }}
-        run: |
-          # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          CERTIFICATE_PATH_IPHONE_DISTRIBUTION=$RUNNER_TEMP/build_certificate_iphone_distribution.p12
-          CERTIFICATE_PATH_IPHONE_DEV=$RUNNER_TEMP/build_certificate_iphone_dev.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
-          PP_PATH_APP_STORE=$RUNNER_TEMP/build_pp_app_store.mobileprovision
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-          echo -n "$CERTIFICATE_IPHONE_DISTRIBUTION_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DISTRIBUTION
-          echo -n "$CERTIFICATE_IPHONE_DEV_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DEV
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
-          echo -n "$BUILD_PROVISION_PROFILE_IOS_DEV_BASE64" | base64 --decode --output $PP_PATH_IOS_DEV
-          echo -n "$BUILD_PROVISION_PROFILE_APP_STORE_BASE64" | base64 --decode --output $PP_PATH_APP_STORE
-
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-          
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH_IPHONE_DISTRIBUTION -P "$CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-          
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH_IPHONE_DEV -P "$CERTIFICATE_IPHONE_DEV_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-
-          # apply provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH_APP_STORE ~/Library/MobileDevice/Provisioning\ Profiles
-
-
-      - name: Show codesigning ids
-        run: security find-identity -v -p codesigning
-
+#      - name: Install the Apple certificate and provisioning profile
+#        env:
+#          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPSTORE_CERT_BASE64 }}
+#          P12_PASSWORD: ${{ secrets.APPSTORE_CERT_PASSWORD }}
+#          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+#          BUILD_PROVISION_PROFILE_IOS_DEV_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_IOS_DEV_BASE64 }}
+#          BUILD_PROVISION_PROFILE_APP_STORE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_APP_STORE_BASE64 }}
+#          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+#          CERTIFICATE_IPHONE_DISTRIBUTION_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_BASE64 }}
+#          CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD }}
+#          CERTIFICATE_IPHONE_DEV_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DEV_BASE64 }}
+#          CERTIFICATE_IPHONE_DEV_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DEV_PASSWORD }}
+#        run: |
+#          # create variables
+#          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+#          CERTIFICATE_PATH_IPHONE_DISTRIBUTION=$RUNNER_TEMP/build_certificate_iphone_distribution.p12
+#          CERTIFICATE_PATH_IPHONE_DEV=$RUNNER_TEMP/build_certificate_iphone_dev.p12
+#          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+#          PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
+#          PP_PATH_APP_STORE=$RUNNER_TEMP/build_pp_app_store.mobileprovision
+#          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+#
+#          # import certificate and provisioning profile from secrets
+#          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+#          echo -n "$CERTIFICATE_IPHONE_DISTRIBUTION_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DISTRIBUTION
+#          echo -n "$CERTIFICATE_IPHONE_DEV_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DEV
+#          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
+#          echo -n "$BUILD_PROVISION_PROFILE_IOS_DEV_BASE64" | base64 --decode --output $PP_PATH_IOS_DEV
+#          echo -n "$BUILD_PROVISION_PROFILE_APP_STORE_BASE64" | base64 --decode --output $PP_PATH_APP_STORE
+#
+#          # create temporary keychain
+#          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+#          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+#          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+#
+#          # import certificate to keychain
+#          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+#          security list-keychain -d user -s $KEYCHAIN_PATH
+#
+#          # import certificate to keychain
+#          security import $CERTIFICATE_PATH_IPHONE_DISTRIBUTION -P "$CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+#          security list-keychain -d user -s $KEYCHAIN_PATH
+#
+#          # import certificate to keychain
+#          security import $CERTIFICATE_PATH_IPHONE_DEV -P "$CERTIFICATE_IPHONE_DEV_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+#          security list-keychain -d user -s $KEYCHAIN_PATH
+#
+#          # apply provisioning profile
+#          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+#          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+#          cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
+#          cp $PP_PATH_APP_STORE ~/Library/MobileDevice/Provisioning\ Profiles
+#
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
 
+      - name: Fastlane load certificates
+        working-directory: ios
+        run: fastlane ios certificates
+
+      - name: Show codesigning ids
+        run: security find-identity -v -p codesigning
+
       - run: flutter pub get
 
+      - name: Fastlane deploy
+        working-directory: ios
+        run: fastlane ios deploy
+
+
       # Build and sign the ipa using a single flutter command
-      - name: Building IPA
-        run: flutter build ipa
+#      - name: Building IPA
+#        run: flutter build ipa
 
       # Upload ipa file to Testflight
-      - name: Publish to testflight
-        run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/example_flutter_app.ipa --apiKey ${ALTOOL_API_KEY} --apiIssuer ${ALTOOL_API_ISSUER}
-        env:
-          ALTOOL_API_KEY: ${{ secrets.ALTOOL_API_KEY }}
-          ALTOOL_API_ISSUER: ${{ secrets.ALTOOL_API_ISSUER }}
+#      - name: Publish to testflight
+#        run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/example_flutter_app.ipa --apiKey ${ALTOOL_API_KEY} --apiIssuer ${ALTOOL_API_ISSUER}
+#        env:
+#          ALTOOL_API_KEY: ${{ secrets.ALTOOL_API_KEY }}
+#          ALTOOL_API_ISSUER: ${{ secrets.ALTOOL_API_ISSUER }}
 
       # Important! Cleanup: remove the certificate and provisioning profile from the runner!
-      - name: Clean up keychain and provisioning profile
-        if: ${{ always() }}
-        run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
-          rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
+#      - name: Clean up keychain and provisioning profile
+#        if: ${{ always() }}
+#        run: |
+#          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+#          rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision

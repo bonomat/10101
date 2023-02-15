@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: setup_ci" time="0.000161">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: sync_code_signing" time="6.741491">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="2: build_app" time="47.703124">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="3: app_store_connect_api_key" time="0.001293">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="4: upload_to_app_store" time="167.948129">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>
