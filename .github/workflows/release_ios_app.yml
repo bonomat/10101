@@ -96,7 +96,6 @@ jobs:
       - name: Fastlane deploy
         working-directory: ios
         run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane ios deploy --verbose
-        env:
 
 
       # Build and sign the ipa using a single flutter command
