@@ -101,31 +101,3 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
           rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
-  # Release job, upload the ipa to Firebase App Distribution
-  release:
-    name: Release ipa to Testflight
-    needs: [ build ]
-    runs-on: ubuntu-latest
-    steps:
-
-      # Retrieve ipa file from GitHub artifacts
-      - uses: actions/checkout@v2
-      - name: Get release-ipa from artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: release-ipa
-
-      # Upload ipa file to Testflight
-      - name: Publish to testflight
-        working-directory: mobile/ios
-        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
-
-
-#      # Upload ipa file to Fiebase
-#      - name: Upload artifact to Firebase App Distribution
-#        uses: wzieba/Firebase-Distribution-Github-Action@v1
-#        with:
-#          appId: ${{secrets.FIREBASE_IOS_APP_ID}}
-#          token: ${{secrets.FIREBASE_TOKEN}}
-#          groups: ios-developers
-#          file: {your_app_name}.ipa
