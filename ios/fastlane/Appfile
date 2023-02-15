@@ -1,8 +1,0 @@
-app_identifier("finance.get10101.app") # The bundle identifier of your app
-apple_id("philipp@hoenisch.at") # Your Apple Developer Portal username
-
-itc_team_id("125621203") # App Store Connect Team ID
-team_id("V3D64P9D6W") # Developer Portal Team ID
-
-# For more information about the Appfile, see:
-#     https://docs.fastlane.tools/advanced/#appfile
