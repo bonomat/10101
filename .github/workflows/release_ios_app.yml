@@ -20,6 +20,7 @@ jobs:
           P12_PASSWORD: ${{ secrets.APPSTORE_CERT_PASSWORD }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
           BUILD_PROVISION_PROFILE_IOS_DEV_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_IOS_DEV_BASE64 }}
+          BUILD_PROVISION_PROFILE_APP_STORE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_APP_STORE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           CERTIFICATE_IPHONE_DISTRIBUTION_BASE64: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_BASE64 }}
           CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD: ${{ secrets.CERTIFICATE_IPHONE_DISTRIBUTION_PASSWORD }}
@@ -32,6 +33,7 @@ jobs:
           CERTIFICATE_PATH_IPHONE_DEV=$RUNNER_TEMP/build_certificate_iphone_dev.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
+          PP_PATH_APP_STORE=$RUNNER_TEMP/build_pp_app_store.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
@@ -40,6 +42,7 @@ jobs:
           echo -n "$CERTIFICATE_IPHONE_DEV_BASE64" | base64 --decode --output $CERTIFICATE_PATH_IPHONE_DEV
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
           echo -n "$BUILD_PROVISION_PROFILE_IOS_DEV_BASE64" | base64 --decode --output $PP_PATH_IOS_DEV
+          echo -n "$BUILD_PROVISION_PROFILE_APP_STORE_BASE64" | base64 --decode --output $PP_PATH_APP_STORE
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -62,6 +65,7 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH_APP_STORE ~/Library/MobileDevice/Provisioning\ Profiles
 
 
       - name: Show codesigning ids
