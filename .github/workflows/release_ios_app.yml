@@ -6,6 +6,10 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
+
+      - uses: actions/checkout@v3
+      - uses: extractions/setup-just@v1
+
       # Checks-out our repository under $GITHUB_WORKSPACE, so our job can access it
       - name: Checkout repository
         uses: actions/checkout@v2
