@@ -88,9 +88,11 @@ jobs:
 
       # Upload ipa file to Testflight
       - name: Publish to testflight
-        working-directory: mobile/ios
-        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
-
+        working-directory: mobile
+        run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/10101.ipa --apiKey $ALTOOL_API_KEY --apiIssuer $ALTOOL_API_ISSUER
+        env:
+          ALTOOL_API_KEY=${{ secrets.ALTOOL_API_KEY }}
+          ALTOOL_API_ISSUER=${{ secrets.ALTOOL_API_ISSUER }}
 
 #      # Collect the file and upload as artifact
 #      - name: collect ipa artifacts
