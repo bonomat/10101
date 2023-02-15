@@ -75,19 +75,14 @@ platform :ios do
       )
 
       build_app(scheme: "appstore")
-      app_store_connect_api_key(
-        is_key_content_base64: true,
-        in_house: false, # if it is enterprise or not
-      )
-#       upload_to_app_store(
-#         force: true,
-#         run_precheck_before_submit: false,
-#         submit_for_review: false
+#       app_store_connect_api_key(
+#         is_key_content_base64: true,
+#         in_house: false, # if it is enterprise or not
 #       )
       upload_to_testflight(
+        skip_submission: true,
         skip_waiting_for_build_processing: true
       )
     end
-
 
 end
