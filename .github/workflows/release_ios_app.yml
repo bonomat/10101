@@ -1,6 +1,14 @@
 name: "Build and Publish iOS"
 on: workflow_dispatch
 
+
+env:
+  APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+  APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+  APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+  MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+  MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+
 jobs:
   # Build job
   build:
@@ -74,6 +82,7 @@ jobs:
       - name: Fastlane load certificates
         working-directory: ios
         run: fastlane ios certificates
+
 
       - name: Show codesigning ids
         run: security find-identity -v -p codesigning
