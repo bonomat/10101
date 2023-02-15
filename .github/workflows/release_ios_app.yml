@@ -70,15 +70,15 @@ jobs:
       - run: flutter pub get
 
       # Build and sign the ipa using a single flutter command
-      - name: Building IPA
-        run: flutter build ipa
+#      - name: Building IPA
+#        run: flutter build ipa
 
       # Upload ipa file to Testflight
-      - name: Publish to testflight
-        run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/example_flutter_app.ipa --apiKey ${ALTOOL_API_KEY} --apiIssuer ${ALTOOL_API_ISSUER}
-        env:
-          ALTOOL_API_KEY: ${{ secrets.ALTOOL_API_KEY }}
-          ALTOOL_API_ISSUER: ${{ secrets.ALTOOL_API_ISSUER }}
+#      - name: Publish to testflight
+#        run: xcrun altool --upload-app --type ios --file ./build/ios/ipa/example_flutter_app.ipa --apiKey ${ALTOOL_API_KEY} --apiIssuer ${ALTOOL_API_ISSUER}
+#        env:
+#          ALTOOL_API_KEY: ${{ secrets.ALTOOL_API_KEY }}
+#          ALTOOL_API_ISSUER: ${{ secrets.ALTOOL_API_ISSUER }}
 
       # Important! Cleanup: remove the certificate and provisioning profile from the runner!
       - name: Clean up keychain and provisioning profile
