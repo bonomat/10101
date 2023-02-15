@@ -44,7 +44,7 @@ jobs:
         run: just deps-ios
       - name: Build ios files
         run: just ios
-      - name: Build ipa
+      - name: Build ios package
         working-directory: mobile
-        run: flutter build ipa
+        run: flutter build ios
       - run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
