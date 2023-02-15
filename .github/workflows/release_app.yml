@@ -1,0 +1,34 @@
+name: Release Workflow
+
+on: workflow_dispatch
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+  APP_SPECIFIC_PASSWORD: ${{ secrets.MATCHAPP_SPECIFIC_PASSWORD_PASSWORD }}
+  GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+  CI: true
+
+jobs:
+  release-to-testflight:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: extractions/setup-just@v1
+      - name: Add signing certificates
+        working-directory: mobile/ios
+        run: |
+          MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane setup_ci_certs --verbose
+          security find-identity -v -p codesigning
+      - name: Show codesigning ids
+        run: security find-identity -v -p codesigning
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Build ios package 1
+        working-directory: mobile/ios
+        run: flutter build ipa
+      - name: Publish to appstore
+        working-directory: mobile/ios
+        run: MATCH_PASSWORD=$MATCH_PASSWORD FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=$APP_SPECIFIC_PASSWORD MATCH_GIT_BASIC_AUTHORIZATION=$GIT_BASIC_AUTHORIZATION fastlane beta --verbose
