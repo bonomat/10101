@@ -93,6 +93,7 @@ jobs:
         run: security find-identity -v -p codesigning
 
       - run: flutter pub get
+      - run: flutter build ipa
 
       - name: Fastlane deploy
         working-directory: ios
