@@ -13,77 +13,70 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
-# default_platform(:ios)
-#
-# platform :ios do
-#   desc "Push a new release build to the App Store"
-#   lane :release do
-#     build_app(workspace: "Runner.xcworkspace", scheme: "Runner")
-#     upload_to_app_store
-#   end
-# end
 
 default_platform(:ios)
 
 platform :ios do
 
-  desc "Get certificates"
-  lane :certificates do
-    sync_code_signing(
-      type: "development",
-      app_identifier: ['finance.get10101.app'],
-      force_for_new_devices: true,
-      readonly: true
-    )
-
-    # You can repeate the sync_code_signing with other types of certificates such as appstore and adhoc
-    sync_code_signing(
-      type: "appstore",
-      app_identifier: 'finance.get10101.app',
-      readonly: true
-    )
-  end
-
-  desc "Generate new certificates"
-  lane :generate_new_certificates do
-
-    sync_code_signing(
-      type: "development",
-      app_identifier: ['finance.get10101.app'],
-      force_for_new_devices: true,
-      readonly: false
-    )
-
-    sync_code_signing(
-      type: "appstore",
-      app_identifier: ['finance.get10101.app'],
-      force_for_new_devices: true,
-      readonly: false
-    )
-
-  end
-
-  desc "deploy"
-    lane :deploy do
-      desc "Push a new beta build to TestFlight"
-
-      setup_ci
-
-      match(
-          type: "appstore",
-          readonly: true,
-      )
-
-#       sync_code_signing(
-#         type: "appstore",
-#         app_identifier: 'finance.get10101.app',
-#         readonly: false
-#       )
-
-      build_app(scheme: "appstore")
-      upload_to_testflight(
-        skip_waiting_for_build_processing: true
-      )
+    desc "Get certificates"
+    lane :certificates do
+        sync_code_signing(
+            type: "development",
+            app_identifier: ['finance.get10101.app'],
+            force_for_new_devices: true,
+            readonly: true
+        )
+        sync_code_signing(
+            type: "appstore",
+            app_identifier: 'finance.get10101.app',
+            readonly: true
+        )
     end
 
+    desc "Generate new certificates"
+    lane :generate_new_certificates do
+
+      sync_code_signing(
+        type: "development",
+        app_identifier: ['finance.get10101.app'],
+        force_for_new_devices: true,
+        readonly: false
+      )
+
+      sync_code_signing(
+        type: "appstore",
+        app_identifier: ['finance.get10101.app'],
+        force_for_new_devices: true,
+        readonly: false
+      )
+
+    end
+
+    desc "Push a new beta build to TestFlight"
+    lane :beta do
+        setup_ci if ENV['CI']
+        app_store_connect_api_key(
+            key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
+            issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+            key_content: ENV['APP_STORE_CONNECT_API_KEY_KEY'],
+            is_key_content_base64: true,
+            duration: 1200,
+            in_house: false
+        )
+
+
+        match(
+            type: "appstore",
+            readonly: is_ci,
+        )
+
+
+        build_app(
+            skip_build_archive: true,
+            archive_path: "../build/ios/archive/Runner.xcarchive",
+        )
+        upload_to_testflight(
+            skip_waiting_for_build_processing: true
+        )
+    end
 end

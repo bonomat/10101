@@ -5,27 +5,32 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: setup_ci" time="0.000161">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000189">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: sync_code_signing" time="6.741491">
+      <testcase classname="fastlane.lanes" name="1: app_store_connect_api_key" time="0.001698">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: build_app" time="47.703124">
+      <testcase classname="fastlane.lanes" name="2: is_ci" time="0.000105">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: app_store_connect_api_key" time="0.001293">
+      <testcase classname="fastlane.lanes" name="3: match" time="4.782836">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: upload_to_app_store" time="167.948129">
+      <testcase classname="fastlane.lanes" name="4: build_app" time="40.507134">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="5: upload_to_testflight" time="85.357441">
         
       </testcase>
     
