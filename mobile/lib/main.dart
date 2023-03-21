@@ -133,7 +133,7 @@ class _TenTenOneAppState extends State<TenTenOneApp> {
                   path: WalletSettingsScreen.subRouteName,
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (BuildContext context, GoRouterState state) {
-                    return const WalletSettingsScreen();
+                    return WalletSettingsScreen(config: Environment.parse());
                   })
             ],
           ),
@@ -147,7 +147,7 @@ class _TenTenOneAppState extends State<TenTenOneApp> {
                   path: TradeSettingsScreen.subRouteName,
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (BuildContext context, GoRouterState state) {
-                    return const TradeSettingsScreen();
+                    return TradeSettingsScreen(config: Environment.parse());
                   })
             ],
           ),
