@@ -45,6 +45,7 @@ jobs:
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: ${{ env.RUST_VERSION }}
+          components: rustfmt
 
       - uses: actions/setup-java@v3
         with:
