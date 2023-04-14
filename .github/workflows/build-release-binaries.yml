@@ -5,16 +5,13 @@ on:
     types: [created]
 
 jobs:
-  build_test_flight_release:
-    name: Build testflight release
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: ./.github/workflows/ios.yml
-        id: release_testflight
-        with:
-          electrs_endpoint: ${{ secrets.ELECTRS_MAINNET }}
-          coordinator_p2p_endpoint: ${{ secrets.COORDINATOR_P2P_ENDPOINT_MAINNET }}
-          tag: ${{ github.event.release.target_commitish }}
+  build_testflight_release:
+    permissions:
+      packages: write
+      contents: read
+    uses: ./.github/workflows/ios.yml
+    secrets: inherit
+    with:
+      electrs_endpoint: ${{ secrets.ELECTRS_MAINNET }}
+      coordinator_p2p_endpoint: ${{ secrets.COORDINATOR_P2P_ENDPOINT_MAINNET }}
+      tag: ${{ github.event.release.target_commitish }}
