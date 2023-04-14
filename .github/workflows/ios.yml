@@ -20,10 +20,10 @@ on:
     coordinator_p2p_endpoint:
       required: true
       type: string
-      tag:
-        required: true
-        description: "The branch, tag or SHA to checkout."
-        type: string
+    tag:
+      required: true
+      description: "The branch, tag or SHA to checkout."
+      type: string
 
 jobs:
   build:
