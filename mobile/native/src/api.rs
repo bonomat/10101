@@ -223,3 +223,7 @@ pub fn get_seed_phrase() -> Result<SyncReturn<Vec<String>>> {
 pub async fn register_beta(email: String) -> Result<()> {
     order::register_beta(email).await
 }
+
+pub fn get_node_id() -> Result<SyncReturn<String>> {
+    ln_dlc::get_node_info().map(|info| SyncReturn(info.pubkey.to_string()))
+}

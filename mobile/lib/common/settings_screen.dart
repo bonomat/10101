@@ -10,6 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../ffi.dart' as rust;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({required this.fromRoute, super.key});
@@ -22,6 +24,25 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   File? logs;
+  String _buildNumber = '';
+  String _nodeId = "";
+
+  @override
+  void initState() {
+    var nodeId = rust.api.getNodeId();
+    _nodeId = nodeId;
+    loadValues();
+    super.initState();
+  }
+
+  Future<void> loadValues() async {
+    var value = await PackageInfo.fromPlatform();
+
+    FLog.info(text: "All values ${value}");
+    setState(() {
+      _buildNumber = value.buildNumber;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +124,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
+            TableRow(
+              children: [
+                const Center(
+                  child: Text('Build Version'),
+                ),
+                Center(
+                  child: SelectableText(_buildNumber),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                const Center(
+                  child: Text('Node ID'),
+                ),
+                Center(
+                  child: SelectableText(_nodeId),
+                ),
+              ],
+            )
           ],
         ),
         ElevatedButton(
