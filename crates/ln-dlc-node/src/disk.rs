@@ -15,13 +15,13 @@ pub(crate) fn read_scorer(
     logger: Arc<TracingLogger>,
 ) -> ProbabilisticScorer<Arc<NetworkGraph>, Arc<TracingLogger>> {
     let params = ProbabilisticScoringParameters::default();
-    if let Ok(file) = File::open(path) {
-        let args = (params.clone(), graph.clone(), logger.clone());
-        match ProbabilisticScorer::read(&mut BufReader::new(file), args) {
-            Ok(scorer) => return scorer,
-            Err(e) => tracing::error!("Failed to read scorer from disk: {e}"),
-        }
-    }
+    // if let Ok(file) = File::open(path) {
+    //     let args = (params.clone(), graph.clone(), logger.clone());
+    //     match ProbabilisticScorer::read(&mut BufReader::new(file), args) {
+    //         Ok(scorer) => return scorer,
+    //         Err(e) => tracing::error!("Failed to read scorer from disk: {e}"),
+    //     }
+    // }
     ProbabilisticScorer::new(params, graph, logger)
 }
 
