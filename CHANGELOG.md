@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added new setting to coordinator to configure max channel size to traders
+
 ## [1.2.0] - 2023-08-04
 
 - Automatically retry spendable outputs if not successfully published
