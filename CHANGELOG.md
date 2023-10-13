@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Breaking change: upgrade rust-lightning to 0.0.116. All positions prior this version seem to be broken as we can't load them from the storage
+
 ## [1.4.2] - 2023-10-18
 
 - Only contracts are editable for new orders

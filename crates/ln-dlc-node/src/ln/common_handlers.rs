@@ -18,11 +18,11 @@ use bitcoin::secp256k1::PublicKey;
 use lightning::chain::chaininterface::BroadcasterInterface;
 use lightning::chain::chaininterface::ConfirmationTarget;
 use lightning::chain::chaininterface::FeeEstimator;
-use lightning::chain::keysinterface::SpendableOutputDescriptor;
+use lightning::events::PaymentPurpose;
 use lightning::ln::channelmanager::InterceptId;
 use lightning::ln::PaymentHash;
 use lightning::routing::gossip::NodeId;
-use lightning::util::events::PaymentPurpose;
+use lightning::sign::SpendableOutputDescriptor;
 use rand::thread_rng;
 use rand::Rng;
 use secp256k1_zkp::Secp256k1;
@@ -57,7 +57,7 @@ pub fn handle_payment_claimable(
 
 pub fn handle_htlc_handling_failed(
     prev_channel_id: [u8; 32],
-    failed_next_destination: lightning::util::events::HTLCDestination,
+    failed_next_destination: lightning::events::HTLCDestination,
 ) {
     tracing::info!(
         prev_channel_id = %prev_channel_id.to_hex(),
@@ -221,7 +221,7 @@ pub fn handle_channel_closed<S>(
     node: &Arc<Node<S>>,
     pending_intercepted_htlcs: &PendingInterceptedHtlcs,
     user_channel_id: u128,
-    reason: lightning::util::events::ClosureReason,
+    reason: lightning::events::ClosureReason,
     channel_id: [u8; 32],
 ) -> Result<(), anyhow::Error>
 where
@@ -239,7 +239,7 @@ where
         if let Some(channel) = node.storage.get_channel(&user_channel_id)? {
             let counterparty = channel.counterparty;
 
-            let channel = Channel::close_channel(channel, reason);
+            let channel = Channel::close_channel(channel, reason.clone());
             node.storage.upsert_channel(channel)?;
 
             // Fail intercepted HTLC which was meant to be used to open the JIT channel,
@@ -251,7 +251,7 @@ where
 
         match node
             .sub_channel_manager
-            .notify_ln_channel_closed(channel_id)
+            .notify_ln_channel_closed(channel_id, &reason)
         {
             Ok(()) => {}
             Err(dlc_manager::error::Error::InvalidParameters(msg)) => {
@@ -301,7 +301,7 @@ where
         tx_feerate,
         &Secp256k1::new(),
     )?;
-    node.wallet.broadcast_transaction(&spending_tx);
+    node.wallet.broadcast_transactions(&[&spending_tx]);
     Ok(())
 }
 

@@ -13,7 +13,7 @@ use bdk::TransactionDetails;
 use bitcoin::secp256k1::PublicKey;
 use coordinator_commons::CollaborativeRevert;
 use dlc_manager::subchannel::SubChannel;
-use lightning_invoice::Invoice;
+use lightning_invoice::Bolt11Invoice;
 use ln_dlc_node::node::NodeInfo;
 use serde::de;
 use serde::Deserialize;
@@ -272,7 +272,7 @@ pub async fn send_payment(
     Path(invoice): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<(), AppError> {
-    let invoice = Invoice::from_str(invoice.as_str())
+    let invoice = Bolt11Invoice::from_str(invoice.as_str())
         .context("Could not parse Invoice string")
         .map_err(|e| AppError::BadRequest(format!("{e:#}")))?;
     state

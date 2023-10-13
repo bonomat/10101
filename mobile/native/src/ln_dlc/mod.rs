@@ -32,7 +32,6 @@ use bdk::bitcoin::XOnlyPublicKey;
 use bdk::BlockTime;
 use bdk::FeeRate;
 use bitcoin::hashes::hex::ToHex;
-use bitcoin::secp256k1::Secp256k1;
 use bitcoin::Address;
 use bitcoin::Amount;
 use bitcoin::OutPoint;
@@ -48,13 +47,13 @@ use coordinator_commons::OnboardingParam;
 use coordinator_commons::TradeParams;
 use itertools::chain;
 use itertools::Itertools;
+use lightning::events::Event;
 use lightning::ln::channelmanager::ChannelDetails;
-use lightning::util::events::Event;
-use lightning_invoice::Invoice;
 use ln_dlc_node::channel::Channel;
 use ln_dlc_node::channel::UserChannelId;
 use ln_dlc_node::channel::JIT_FEE_INVOICE_DESCRIPTION_PREFIX;
 use ln_dlc_node::config::app_config;
+use ln_dlc_node::lightning_invoice::Bolt11Invoice;
 use ln_dlc_node::node::rust_dlc_manager;
 use ln_dlc_node::node::rust_dlc_manager::subchannel::LNChannelManager;
 use ln_dlc_node::node::rust_dlc_manager::subchannel::SubChannelState;
@@ -442,7 +441,7 @@ fn keep_wallet_balance_and_history_up_to_date(node: &Node) -> Result<()> {
             None => return None,
         };
 
-        let decoded_invoice = match details.invoice.as_deref().map(Invoice::from_str) {
+        let decoded_invoice = match details.invoice.as_deref().map(Bolt11Invoice::from_str) {
             Some(Ok(inv)) => {
                 tracing::trace!(?inv, "Decoded invoice");
                 Some(inv)
@@ -693,8 +692,9 @@ pub fn collaborative_revert_channel(
         .context("Could not find provided channel")?;
 
     let channel_manager = node.channel_manager.clone();
+    let sub_channel_id = subchannel.channel_id;
     let details = channel_manager
-        .get_channel_details(&subchannel.channel_id)
+        .get_channel_details(&sub_channel_id)
         .context("Could not get channel details")?;
     let out_point = details
         .original_funding_outpoint
@@ -725,80 +725,57 @@ pub fn collaborative_revert_channel(
             },
         ],
     };
-    let mut own_sig = None;
 
-    channel_manager
-        .with_channel_lock_no_check(
-            &subchannel.channel_id,
-            &subchannel.counter_party,
-            |channel_lock| {
-                channel_manager.sign_with_fund_key_cb(channel_lock, &mut |fund_sk| {
-                    let secp = Secp256k1::new();
+    let own_sig = node
+        .sub_channel_manager
+        .get_holder_split_tx_signature(subchannel, &collab_revert_tx)
+        .context("Could not sign transaction")?;
 
-                    own_sig = Some(
-                        dlc::util::get_raw_sig_for_tx_input(
-                            &secp,
-                            &collab_revert_tx,
-                            0,
-                            &subchannel.original_funding_redeemscript,
-                            subchannel.fund_value_satoshis,
-                            fund_sk,
-                        )
-                        .expect("to be able to get raw sig for tx input"),
+    let data = CollaborativeRevertData {
+        channel_id: hex::encode(sub_channel_id),
+        transaction: collab_revert_tx,
+        signature: own_sig,
+    };
+
+    let client = reqwest_client();
+    let runtime = get_or_create_tokio_runtime()?;
+    runtime.spawn(async move {
+        match client
+            .post(format!(
+                "http://{}/api/channels/revertconfirm",
+                config::get_http_endpoint(),
+            ))
+            .json(&data)
+            .send()
+            .await
+        {
+            Ok(response) => match response.text().await {
+                Ok(response) => {
+                    tracing::info!(
+                        response,
+                        "Received response from confirming reverting a channel"
                     );
-                });
-                Ok(())
-            },
-        )
-        .expect("To be able to get channel lock");
 
-    if let Some(own_sig) = own_sig {
-        let data = CollaborativeRevertData {
-            channel_id: hex::encode(subchannel.channel_id),
-            transaction: collab_revert_tx,
-            signature: own_sig,
-        };
-
-        let client = reqwest_client();
-        let runtime = get_or_create_tokio_runtime()?;
-        runtime.spawn(async move {
-            match client
-                .post(format!(
-                    "http://{}/api/channels/revertconfirm",
-                    config::get_http_endpoint(),
-                ))
-                .json(&data)
-                .send()
-                .await
-            {
-                Ok(response) => match response.text().await {
-                    Ok(response) => {
-                        tracing::info!(
-                            response,
-                            "Received response from confirming reverting a channel"
-                        );
-
-                        match db::delete_positions() {
-                            Ok(_) => {
-                                event::publish(&EventInternal::PositionCloseNotification(
-                                    ContractSymbol::BtcUsd,
-                                ));
-                            }
-                            Err(error) => {
-                                tracing::error!("Could not delete position : {error:#}");
-                            }
+                    match db::delete_positions() {
+                        Ok(_) => {
+                            event::publish(&EventInternal::PositionCloseNotification(
+                                ContractSymbol::BtcUsd,
+                            ));
+                        }
+                        Err(error) => {
+                            tracing::error!("Could not delete position : {error:#}");
                         }
                     }
-                    Err(error) => {
-                        tracing::error!("Failed at confirming reverting a channel  : {error:#}");
-                    }
-                },
-                Err(err) => {
-                    tracing::error!("Could not confirm collaborative revert {err:#}");
                 }
+                Err(error) => {
+                    tracing::error!("Failed at confirming reverting a channel  : {error:#}");
+                }
+            },
+            Err(err) => {
+                tracing::error!("Could not confirm collaborative revert {err:#}");
             }
-        });
-    }
+        }
+    });
 
     Ok(())
 }
@@ -884,7 +861,10 @@ pub fn liquidity_options() -> Result<Vec<LiquidityOption>> {
     Ok(lsp_config.liquidity_options)
 }
 
-pub fn create_onboarding_invoice(amount_sats: u64, liquidity_option_id: i32) -> Result<Invoice> {
+pub fn create_onboarding_invoice(
+    amount_sats: u64,
+    liquidity_option_id: i32,
+) -> Result<Bolt11Invoice> {
     let runtime = get_or_create_tokio_runtime()?;
 
     runtime.block_on(async {
@@ -952,7 +932,7 @@ pub fn create_onboarding_invoice(amount_sats: u64, liquidity_option_id: i32) -> 
     })
 }
 
-pub fn create_invoice(amount_sats: Option<u64>) -> Result<Invoice> {
+pub fn create_invoice(amount_sats: Option<u64>) -> Result<Bolt11Invoice> {
     let runtime = get_or_create_tokio_runtime()?;
 
     runtime.block_on(async {
@@ -988,7 +968,7 @@ pub fn create_invoice(amount_sats: Option<u64>) -> Result<Invoice> {
 pub fn send_payment(payment: SendPayment) -> Result<()> {
     match payment {
         SendPayment::Lightning { invoice, amount } => {
-            let invoice = Invoice::from_str(&invoice)?;
+            let invoice = Bolt11Invoice::from_str(&invoice)?;
             NODE.get().inner.pay_invoice(&invoice, amount)?;
         }
         SendPayment::OnChain { address, amount } => {
@@ -1030,12 +1010,13 @@ pub async fn trade(trade_params: TradeParams) -> Result<(), (FailureReason, Erro
             anyhow!("Could not deserialize order-matching fee invoice: {e:#}"),
         )
     })?;
-    let order_matching_fee_invoice: Invoice = order_matching_fee_invoice.parse().map_err(|e| {
-        (
-            FailureReason::TradeResponse,
-            anyhow!("Could not parse order-matching fee invoice: {e:#}"),
-        )
-    })?;
+    let order_matching_fee_invoice: Bolt11Invoice =
+        order_matching_fee_invoice.parse().map_err(|e| {
+            (
+                FailureReason::TradeResponse,
+                anyhow!("Could not parse order-matching fee invoice: {e:#}"),
+            )
+        })?;
 
     let payment_hash = *order_matching_fee_invoice.payment_hash();
 

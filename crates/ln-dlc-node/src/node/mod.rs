@@ -34,15 +34,17 @@ use futures::future::RemoteHandle;
 use futures::FutureExt;
 pub use invoice::HTLCStatus;
 use lightning::chain::chainmonitor;
-use lightning::chain::keysinterface::EntropySource;
-use lightning::chain::keysinterface::KeysManager;
 use lightning::chain::Confirm;
 use lightning::ln::msgs::NetAddress;
+use lightning::ln::peer_handler::IgnoringMessageHandler;
 use lightning::ln::peer_handler::MessageHandler;
 use lightning::routing::gossip::P2PGossipSync;
 use lightning::routing::router::DefaultRouter;
 use lightning::routing::scoring::ProbabilisticScorer;
+use lightning::routing::scoring::ProbabilisticScoringFeeParameters;
 use lightning::routing::utxo::UtxoLookup;
+use lightning::sign::EntropySource;
+use lightning::sign::KeysManager;
 use lightning::util::config::UserConfig;
 use lightning_background_processor::process_events_async;
 use lightning_background_processor::GossipSync;
@@ -324,11 +326,13 @@ where
             logger.clone(),
         )));
 
+        let scoring_fee_params = ProbabilisticScoringFeeParameters::default();
         let router = Arc::new(DefaultRouter::new(
             network_graph.clone(),
             logger.clone(),
             keys_manager.get_secure_random_bytes(),
             scorer.clone(),
+            scoring_fee_params,
         ));
 
         let channel_manager = channel_manager::build(
@@ -364,8 +368,12 @@ where
         )?;
         let dlc_manager = Arc::new(dlc_manager);
 
-        let sub_channel_manager =
-            sub_channel_manager::build(channel_manager.clone(), dlc_manager.clone())?;
+        let sub_channel_manager = sub_channel_manager::build(
+            channel_manager.clone(),
+            dlc_manager.clone(),
+            chain_monitor.clone(),
+            keys_manager.clone(),
+        )?;
 
         let dlc_message_handler = Arc::new(DlcMessageHandler::new());
 
@@ -374,7 +382,8 @@ where
             route_handler: gossip_sync.clone(),
             // Hooking the dlc_message_handler here to intercept the `peer_disconnected` event and
             // clear all pending unprocessed message from the disconnected peer.
-            onion_message_handler: dlc_message_handler.clone(),
+            onion_message_handler: Arc::new(IgnoringMessageHandler {}),
+            custom_message_handler: dlc_message_handler.clone(),
         };
 
         let peer_manager: Arc<PeerManager> = Arc::new(PeerManager::new(
@@ -382,7 +391,6 @@ where
             time_since_unix_epoch.as_secs() as u32,
             &ephemeral_randomness,
             logger.clone(),
-            dlc_message_handler.clone(),
             keys_manager.clone(),
         ));
 
@@ -609,6 +617,8 @@ fn spawn_background_processor(
                     false
                 })
             },
+            // TODO: think about how to make this configurable per platform
+            true,
         )
         .await
         {

@@ -15,14 +15,14 @@ use dlc_messages::sub_channel::SubChannelRevoke;
 use dlc_messages::ChannelMessage;
 use dlc_messages::Message;
 use dlc_messages::SubChannelMessage;
-use lightning::chain::keysinterface::DelayedPaymentOutputDescriptor;
-use lightning::chain::keysinterface::SpendableOutputDescriptor;
-use lightning::chain::keysinterface::StaticPaymentOutputDescriptor;
 use lightning::chain::transaction::OutPoint;
 use lightning::ln::PaymentHash;
 use lightning::ln::PaymentPreimage;
 use lightning::ln::PaymentSecret;
-use lightning_invoice::Invoice;
+use lightning::sign::DelayedPaymentOutputDescriptor;
+use lightning::sign::SpendableOutputDescriptor;
+use lightning::sign::StaticPaymentOutputDescriptor;
+use lightning_invoice::Bolt11Invoice;
 use ln_dlc_node::channel::Channel;
 use ln_dlc_node::node;
 use ln_dlc_node::node::dlc_message_name;
@@ -47,7 +47,7 @@ pub struct Node {
     /// The order-matching fee invoice to be paid once the current trade is executed.
     ///
     /// We assume that only one trade can be executed at a time.
-    pub order_matching_fee_invoice: Arc<RwLock<Option<Invoice>>>,
+    pub order_matching_fee_invoice: Arc<RwLock<Option<Bolt11Invoice>>>,
 }
 
 impl Node {

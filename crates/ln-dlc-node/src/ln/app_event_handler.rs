@@ -15,7 +15,7 @@ use async_trait::async_trait;
 use bitcoin::hashes::hex::ToHex;
 use bitcoin::secp256k1::PublicKey;
 use dlc_manager::subchannel::LNChannelManager;
-use lightning::util::events::Event;
+use lightning::events::Event;
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -155,6 +155,8 @@ where
                 next_channel_id,
                 fee_earned_msat,
                 claim_from_onchain_tx,
+                // TODO: use this
+                outbound_amount_forwarded_msat: _,
             } => {
                 common_handlers::handle_payment_forwarded(
                     &self.node,
@@ -234,10 +236,16 @@ where
             Event::PaymentClaimable {
                 receiver_node_id: _,
                 payment_hash,
+                // TODO: use this
+                onion_fields: _,
                 amount_msat,
+                // TODO: use this
+                counterparty_skimmed_fee_msat: _,
                 purpose,
                 via_channel_id: _,
                 via_user_channel_id: _,
+                // TODO: use this
+                claim_deadline: _,
             } => {
                 common_handlers::handle_payment_claimable(
                     &self.node.channel_manager,
@@ -248,6 +256,12 @@ where
             }
             Event::HTLCIntercepted { .. } => {
                 unimplemented!("App should not intercept htlcs")
+            }
+            Event::ChannelPending { .. } => {
+                // TODO: handle this event
+            }
+            Event::BumpTransaction(_) => {
+                // TODO: handle this event
             }
         };
 

@@ -6,10 +6,13 @@ use lightning::chain::chaininterface::FEERATE_FLOOR_SATS_PER_KW;
 use parking_lot::RwLock;
 use std::collections::HashMap;
 
-const CONFIRMATION_TARGETS: [(ConfirmationTarget, usize); 3] = [
+const CONFIRMATION_TARGETS: [(ConfirmationTarget, usize); 4] = [
     // We choose an extremely high background confirmation target to avoid force-closing channels
     // unnecessarily.
     (ConfirmationTarget::Background, 1008),
+    // We just want to end up in the mempool eventually. Putting this to a high number should get
+    // us mempool minimum
+    (ConfirmationTarget::MempoolMinimum, 10_000),
     (ConfirmationTarget::Normal, 6),
     (ConfirmationTarget::HighPriority, 3),
 ];

@@ -22,9 +22,9 @@ use bitcoin::hashes::hex::ToHex;
 use bitcoin::secp256k1::PublicKey;
 use dlc_manager::subchannel::LNChannelManager;
 use lightning::chain::chaininterface::FeeEstimator;
+use lightning::events::Event;
 use lightning::ln::channelmanager::InterceptId;
 use lightning::ln::PaymentHash;
-use lightning::util::events::Event;
 use parking_lot::Mutex;
 use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
@@ -143,6 +143,8 @@ where
                 next_channel_id,
                 fee_earned_msat,
                 claim_from_onchain_tx,
+                // TODO: make use of this value
+                outbound_amount_forwarded_msat: _,
             } => {
                 common_handlers::handle_payment_forwarded(
                     &self.node,
@@ -227,10 +229,16 @@ where
             Event::PaymentClaimable {
                 receiver_node_id: _,
                 payment_hash,
+                // TODO: make use of this value
+                onion_fields: _,
                 amount_msat,
+                // TODO: make use of this value
+                counterparty_skimmed_fee_msat: _,
                 purpose,
                 via_channel_id: _,
                 via_user_channel_id: _,
+                // TODO: make use of this value
+                claim_deadline: _,
             } => {
                 common_handlers::handle_payment_claimable(
                     &self.node.channel_manager,
@@ -256,6 +264,12 @@ where
                     expected_outbound_amount_msat,
                 )
                 .await?;
+            }
+            Event::ChannelPending { .. } => {
+                // TODO: handle this event
+            }
+            Event::BumpTransaction(_) => {
+                // TODO: handle this event
             }
         };
 

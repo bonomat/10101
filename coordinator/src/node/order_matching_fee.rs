@@ -5,7 +5,7 @@ use anyhow::Result;
 use bitcoin::secp256k1::ThirtyTwoByteHash;
 use coordinator_commons::TradeParams;
 use lightning::ln::PaymentHash;
-use lightning_invoice::Invoice;
+use lightning_invoice::Bolt11Invoice;
 use ln_dlc_node::PaymentInfo;
 use orderbook_commons::order_matching_fee_taker;
 use orderbook_commons::FEE_INVOICE_DESCRIPTION_PREFIX_TAKER;
@@ -17,7 +17,7 @@ impl Node {
     pub async fn fee_invoice_taker(
         &self,
         trade_params: &TradeParams,
-    ) -> Result<(PaymentHash, Invoice)> {
+    ) -> Result<(PaymentHash, Bolt11Invoice)> {
         let order_id = trade_params.filled_with.order_id;
         let description = format!("{FEE_INVOICE_DESCRIPTION_PREFIX_TAKER}{order_id}");
 

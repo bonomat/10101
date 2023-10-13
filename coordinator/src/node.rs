@@ -38,7 +38,7 @@ use dlc_messages::Message;
 use lightning::ln::channelmanager::ChannelDetails;
 use lightning::ln::PaymentHash;
 use lightning::util::config::UserConfig;
-use lightning_invoice::Invoice;
+use lightning_invoice::Bolt11Invoice;
 use ln_dlc_node::node;
 use ln_dlc_node::node::dlc_message_name;
 use ln_dlc_node::node::sub_channel_message_name;
@@ -147,7 +147,7 @@ impl Node {
         !usable_channels.is_empty()
     }
 
-    pub async fn trade(&self, trade_params: &TradeParams) -> Result<Invoice> {
+    pub async fn trade(&self, trade_params: &TradeParams) -> Result<Bolt11Invoice> {
         let mut connection = self.pool.get()?;
         let order_id = trade_params.filled_with.order_id;
         let trader_id = trade_params.pubkey;
@@ -189,7 +189,7 @@ impl Node {
         &self,
         trade_params: &TradeParams,
         connection: &mut PgConnection,
-    ) -> Result<Invoice> {
+    ) -> Result<Bolt11Invoice> {
         let (fee_payment_hash, invoice) = self.fee_invoice_taker(trade_params).await?;
 
         let order_id = trade_params.filled_with.order_id;
