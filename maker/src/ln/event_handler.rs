@@ -200,8 +200,23 @@ where
                     "The maker should not support interceptable invoices!"
                 );
             }
-            Event::ChannelPending { .. } => {
-                // TODO: handle this event
+            Event::ChannelPending {
+                channel_id,
+                user_channel_id: _,
+                former_temporary_channel_id,
+                counterparty_node_id,
+                funding_txo,
+            } => {
+                let former_temporary_channel_id =
+                    former_temporary_channel_id.unwrap_or([0; 32]).to_hex();
+                tracing::debug!(
+                    channel_id = channel_id.to_hex(),
+                    former_temporary_channel_id,
+                    counterparty_node_id = counterparty_node_id.to_string(),
+                    funding_txo_tx_id = funding_txo.txid.to_string(),
+                    funding_txo_tx_vout = funding_txo.vout,
+                    "Channel pending"
+                )
             }
             Event::BumpTransaction(_) => {
                 // TODO: handle this event
