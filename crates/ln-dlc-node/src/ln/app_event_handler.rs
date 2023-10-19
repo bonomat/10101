@@ -236,15 +236,12 @@ where
             Event::PaymentClaimable {
                 receiver_node_id: _,
                 payment_hash,
-                // TODO: use this
                 onion_fields: _,
                 amount_msat,
-                // TODO: use this
                 counterparty_skimmed_fee_msat: _,
                 purpose,
                 via_channel_id: _,
                 via_user_channel_id: _,
-                // TODO: use this
                 claim_deadline: _,
             } => {
                 common_handlers::handle_payment_claimable(
