@@ -489,6 +489,11 @@ where
             self.settings.clone(),
         ));
 
+        handles.push(manage_dlc_manager(
+            self.dlc_manager.clone(),
+            self.settings.clone(),
+        ));
+
         tokio::spawn(manage_spendable_outputs_task(
             self.esplora_server_url.clone(),
             self.storage.clone(),
@@ -838,6 +843,43 @@ fn manage_sub_channels(
                 let interval = {
                     let guard = settings.read().await;
                     guard.sub_channel_manager_periodic_check_interval
+                };
+                tokio::time::sleep(interval).await;
+            }
+        }
+    }
+    .remote_handle();
+
+    tokio::spawn(fut);
+
+    remote_handle
+}
+
+/// Spawn a task that manages dlc manager
+fn manage_dlc_manager(
+    dlc_manager: Arc<DlcManager>,
+    settings: Arc<RwLock<LnDlcNodeSettings>>,
+) -> RemoteHandle<()> {
+    let (fut, remote_handle) = {
+        async move {
+            loop {
+                tracing::trace!("Started periodic dlc manager check");
+                let now = Instant::now();
+                if let Err(e) = dlc_manager.periodic_chain_monitor() {
+                    tracing::error!("Failed to perform periodic chain monitor check: {e:#}");
+                };
+                if let Err(e) = dlc_manager.periodic_check() {
+                    tracing::error!("Failed to perform periodic check: {e:#}");
+                };
+
+                tracing::trace!(
+                    duration = now.elapsed().as_millis(),
+                    "Finished periodic check"
+                );
+
+                let interval = {
+                    let guard = settings.read().await;
+                    guard.dlc_manager_periodic_check_interval
                 };
                 tokio::time::sleep(interval).await;
             }
