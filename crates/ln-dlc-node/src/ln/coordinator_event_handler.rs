@@ -143,8 +143,7 @@ where
                 next_channel_id,
                 fee_earned_msat,
                 claim_from_onchain_tx,
-                // TODO: make use of this value
-                outbound_amount_forwarded_msat: _,
+                outbound_amount_forwarded_msat,
             } => {
                 common_handlers::handle_payment_forwarded(
                     &self.node,
@@ -152,6 +151,7 @@ where
                     next_channel_id,
                     claim_from_onchain_tx,
                     fee_earned_msat,
+                    outbound_amount_forwarded_msat,
                 );
             }
             Event::PendingHTLCsForwardable { time_forwardable } => {

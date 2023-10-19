@@ -86,25 +86,23 @@ pub fn handle_payment_forwarded<S>(
     next_channel_id: Option<[u8; 32]>,
     claim_from_onchain_tx: bool,
     fee_earned_msat: Option<u64>,
+    outbound_amount_forwarded_msat: Option<u64>,
 ) {
     let read_only_network_graph = node.network_graph.read_only();
     let nodes = read_only_network_graph.nodes();
     let channels = node.channel_manager.list_channels();
 
-    let node_str = |channel_id: &Option<[u8; 32]>| match channel_id {
-        None => String::new(),
-        Some(channel_id) => match channels.iter().find(|c| c.channel_id == *channel_id) {
-            None => String::new(),
-            Some(channel) => match nodes.get(&NodeId::from_pubkey(&channel.counterparty.node_id)) {
-                None => " from private node".to_string(),
-                Some(node) => match &node.announcement_info {
-                    None => " from unnamed node".to_string(),
-                    Some(announcement) => {
-                        format!("node {}", announcement.alias)
-                    }
-                },
-            },
-        },
+    let node_str = |channel_id: &Option<[u8; 32]>| {
+        channel_id
+            .and_then(|channel_id| channels.iter().find(|c| c.channel_id == channel_id))
+            .and_then(|channel| nodes.get(&NodeId::from_pubkey(&channel.counterparty.node_id)))
+            .map_or("private_node".to_string(), |node| {
+                node.announcement_info
+                    .as_ref()
+                    .map_or("unnamed node".to_string(), |ann| {
+                        format!("node {}", ann.alias)
+                    })
+            })
     };
     let channel_str = |channel_id: &Option<[u8; 32]>| {
         channel_id
@@ -112,35 +110,33 @@ pub fn handle_payment_forwarded<S>(
             .unwrap_or_default()
     };
     let from_prev_str = format!(
-        "{}{}",
+        " from {}{}",
         node_str(&prev_channel_id),
         channel_str(&prev_channel_id)
     );
     let to_next_str = format!(
-        "{}{}",
+        " to {}{}",
         node_str(&next_channel_id),
         channel_str(&next_channel_id)
     );
 
-    let from_onchain_str = if claim_from_onchain_tx {
-        "from onchain downstream claim"
-    } else {
-        "from HTLC fulfill message"
-    };
-    if let Some(fee_earned) = fee_earned_msat {
+    let fee_earned = fee_earned_msat.unwrap_or(0);
+    let outbound_amount_forwarded_msat = outbound_amount_forwarded_msat.unwrap_or(0);
+    if claim_from_onchain_tx {
         tracing::info!(
-            "Forwarded payment{}{}, earning {} msat {}",
+            "Forwarded payment{}{} of {}msat, earning {}msat in fees from claiming onchain.",
             from_prev_str,
             to_next_str,
+            outbound_amount_forwarded_msat,
             fee_earned,
-            from_onchain_str
         );
     } else {
         tracing::info!(
-            "Forwarded payment{}{}, claiming onchain {}",
+            "Forwarded payment{}{} of {}msat, earning {}msat in fees.",
             from_prev_str,
             to_next_str,
-            from_onchain_str
+            outbound_amount_forwarded_msat,
+            fee_earned,
         );
     }
 }
