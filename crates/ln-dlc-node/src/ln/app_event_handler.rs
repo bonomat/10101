@@ -273,7 +273,7 @@ where
                 )
             }
             Event::BumpTransaction(_) => {
-                // TODO: handle this event
+                tracing::error!("We do not support anchor outputs yet");
             }
         };
 
