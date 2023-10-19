@@ -121,7 +121,7 @@ async fn main() -> Result<()> {
     )?);
 
     let event_handler = CoordinatorEventHandler::new(node.clone(), Some(node_event_sender));
-    let running = node.start(event_handler)?;
+    let running = node.start(event_handler, false)?;
     let node = Node::new(node, running, pool.clone(), settings.to_node_settings());
 
     // TODO: Pass the tokio metrics into Prometheus

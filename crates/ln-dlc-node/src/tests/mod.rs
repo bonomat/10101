@@ -189,7 +189,7 @@ impl Node<InMemoryStore> {
         let node = Arc::new(node);
 
         let event_handler = event_handler_factory(node.clone(), ldk_event_sender);
-        let running = node.start(event_handler)?;
+        let running = node.start(event_handler, false)?;
 
         tracing::debug!(%name, info = %node.info, "Node started");
 

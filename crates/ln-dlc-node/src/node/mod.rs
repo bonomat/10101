@@ -435,7 +435,11 @@ where
     /// Starts the background handles - if the returned handles are dropped, the
     /// background tasks are stopped.
     // TODO: Consider having handles for *all* the tasks & threads for a clean shutdown.
-    pub fn start(&self, event_handler: impl EventHandlerTrait + 'static) -> Result<RunningNode> {
+    pub fn start(
+        &self,
+        event_handler: impl EventHandlerTrait + 'static,
+        mobile_interruptable_platform: bool,
+    ) -> Result<RunningNode> {
         let mut handles = vec![spawn_connection_management(
             self.peer_manager.clone(),
             self.listen_address,
@@ -469,6 +473,7 @@ where
             event_handler,
             self.gossip_sync.clone(),
             self.scorer.clone(),
+            mobile_interruptable_platform,
         ));
 
         handles.push(spawn_broadcast_node_annoucements(
@@ -599,6 +604,7 @@ fn spawn_background_processor(
     event_handler: impl EventHandlerTrait + 'static,
     gossip_sync: Arc<NodeGossipSync>,
     scorer: Arc<Mutex<Scorer>>,
+    mobile_interruptable_platform: bool,
 ) -> RemoteHandle<()> {
     tracing::info!("Starting background processor");
     let (fut, remote_handle) = async move {
@@ -617,8 +623,7 @@ fn spawn_background_processor(
                     false
                 })
             },
-            // TODO: think about how to make this configurable per platform
-            true,
+            mobile_interruptable_platform,
         )
         .await
         {

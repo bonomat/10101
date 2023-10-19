@@ -265,7 +265,7 @@ pub fn run(data_dir: String, seed_dir: String, runtime: &Runtime) -> Result<()> 
         let node = Arc::new(node);
 
         let event_handler = AppEventHandler::new(node.clone(), Some(event_sender));
-        let _running = node.start(event_handler)?;
+        let _running = node.start(event_handler, true)?;
         let node = Arc::new(Node::new(node, _running));
 
         // Refresh the wallet balance and history eagerly so that it can complete before the
