@@ -130,7 +130,7 @@ class _FundWalletModalState extends State<FundWalletModal> {
                                         setState(() => _isPayInvoiceButtonDisabled = true);
                                         final faucetService = context.read<FaucetService>();
                                         faucetService
-                                            .payInvoiceWithLndFaucet(widget.invoice)
+                                            .payInvoiceWithFaucet(widget.invoice, widget.amount)
                                             .catchError((error) {
                                           setState(() => _isPayInvoiceButtonDisabled = false);
                                           showSnackBar(

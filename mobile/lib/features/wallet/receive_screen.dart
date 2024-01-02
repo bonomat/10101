@@ -46,7 +46,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   String? description;
 
   bool _isPayInvoiceButtonDisabled = false;
-  late bool _isLightning;
   SharePaymentRequest? _paymentRequest;
   bool _faucet = false;
   bool _receiveUsdp = false;
@@ -57,15 +56,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     context.read<PaymentClaimedChangeNotifier>().waitForPayment();
     _createPaymentRequest(amount, false, description)
         .then((paymentRequest) => setState(() => _paymentRequest = paymentRequest));
-    _isLightning = widget.walletType == WalletType.lightning;
   }
 
   String rawInvoice() {
-    return _isLightning ? _paymentRequest!.lightningInvoice : _paymentRequest!.bip21Uri;
+    return _paymentRequest!.bip21Uri;
   }
 
   String requestTypeName() {
-    return _isLightning ? "Invoice" : "BIP21 payment URI";
+    return "BIP21 payment URI";
   }
 
   @override
@@ -108,11 +106,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         Container(
           margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
           child: GestureDetector(
-            onDoubleTap: config.network == "regtest" && _isLightning
-                ? () => setState(() => _faucet = !_faucet)
-                : null,
+            onDoubleTap:
+                config.network == "regtest" ? () => setState(() => _faucet = !_faucet) : null,
             child: Center(
-              child: _faucet && _isLightning
+              child: _faucet
                   ? Column(
                       children: [
                         const SizedBox(height: 125),
@@ -123,11 +120,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                   setState(() => _isPayInvoiceButtonDisabled = true);
                                   final faucetService = context.read<FaucetService>();
                                   faucetService
-                                      .payInvoiceWithLndFaucet(rawInvoice())
+                                      .payInvoiceWithFaucet(rawInvoice(), amount)
                                       .catchError((error) {
                                     setState(() => _isPayInvoiceButtonDisabled = false);
                                     showSnackBar(ScaffoldMessenger.of(context), error.toString());
-                                  });
+                                  }).then((value) => context.go(WalletScreen.route));
                                 },
                           style: ElevatedButton.styleFrom(
                             shape: const RoundedRectangleBorder(
@@ -208,7 +205,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                 isInUsd: _receiveUsdp,
                                 amount: _receiveUsdp ? usdAmount?.usd : amount?.sats,
                                 description: description,
-                                isLightning: _isLightning,
+                                isLightning: false,
                                 onConfirm: (amt, descr, isUsd) {
                                   logger.i("Confirming amount $amt $isUsd");
                                   final satsAmount =
@@ -255,42 +252,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             ],
           ),
         ),
-        Visibility(
-            visible: _isLightning,
-            replacement: BitcoinAddress(
-              address: _paymentRequest == null ? "" : _paymentRequest!.bip21Uri,
-            ),
-            child: LightningUsdpToggle(
-              updateReceiveUsdp: (state) {
-                setState(() {
-                  _receiveUsdp = state;
-                  _createPaymentRequest(amount, _receiveUsdp, description)
-                      .then((paymentRequest) => setState(() => _paymentRequest = paymentRequest));
-                });
-              },
-              receiveUsdp: _receiveUsdp,
-              satsAmount: amount,
-              usdAmount: usdAmount,
-            )),
-        const Spacer(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            DualButtonSelector(
-              onLightningButtonClick: () {
-                setState(() {
-                  _isLightning = true;
-                });
-              },
-              onOnChainButtonClick: () {
-                setState(() {
-                  _isLightning = false;
-                });
-              },
-              isLightning: _isLightning,
-            ),
-          ],
-        )
+        BitcoinAddress(
+          address: _paymentRequest == null ? "" : _paymentRequest!.bip21Uri,
+        ),
       ]),
     )));
   }

@@ -46,7 +46,9 @@ class WalletScreen extends StatelessWidget {
                         onPressed: () {
                           context.go((hasChannel || walletChangeNotifier.lightning().sats > 0)
                               ? ReceiveScreen.route
-                              : OnboardingScreen.route);
+                              :
+                              // TODO: we should have a dedicated on-boarding screen for on-boarding with on-chain funds
+                              ReceiveScreen.route);
                         },
                         icon: FontAwesomeIcons.arrowDown,
                         title: 'Receive',
