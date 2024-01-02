@@ -4,7 +4,7 @@ use crate::storage::TenTenOneInMemoryStorage;
 use crate::tests::dummy_contract_input;
 use crate::tests::init_tracing;
 use crate::tests::wait_for_n_usable_channels;
-use crate::tests::wait_until_dlc_channel_state;
+use crate::tests::wait_until_sub_channel_state;
 use crate::tests::SubChannelStateName;
 use anyhow::Context;
 use anyhow::Result;
@@ -74,12 +74,13 @@ pub async fn create_dlc_channel(
         .context("Could not find usable channel with peer")?
         .clone();
 
+    // TODO(bonomat): we should write tests for the dlc channel protocol
     offer_node
         .propose_sub_channel(channel_details.clone(), contract_input)
         .await?;
 
     // Process the app's `Offer`
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         accept_node,
         offer_node.info.pubkey,
@@ -90,7 +91,7 @@ pub async fn create_dlc_channel(
     accept_node.accept_sub_channel_offer(&sub_channel.channel_id)?;
 
     // Process the coordinator's `Accept` and send `Confirm`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         offer_node,
         accept_node.info.pubkey,
@@ -99,7 +100,7 @@ pub async fn create_dlc_channel(
     .await?;
 
     // Process the app's `Confirm` and send `Finalize`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         accept_node,
         offer_node.info.pubkey,
@@ -110,7 +111,7 @@ pub async fn create_dlc_channel(
     // Assert
 
     // Process the coordinator's `Finalize` and send `Revoke`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         offer_node,
         accept_node.info.pubkey,
@@ -119,7 +120,7 @@ pub async fn create_dlc_channel(
     .await?;
 
     // Process the app's `Revoke`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         accept_node,
         offer_node.info.pubkey,

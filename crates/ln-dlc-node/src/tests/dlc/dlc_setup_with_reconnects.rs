@@ -5,7 +5,7 @@ use crate::tests::dummy_contract_input;
 use crate::tests::init_tracing;
 use crate::tests::wait_for_n_usable_channels;
 use crate::tests::wait_until;
-use crate::tests::wait_until_dlc_channel_state;
+use crate::tests::wait_until_sub_channel_state;
 use crate::tests::SubChannelStateName;
 use anyhow::Context;
 use bitcoin::Amount;
@@ -52,12 +52,13 @@ async fn reconnecting_during_dlc_channel_setup() {
     let oracle_pk = *app.oracle_pk().first().unwrap();
     let contract_input = dummy_contract_input(20_000, 20_000, oracle_pk);
 
+    // TODO(bonomat): we should write tests for the dlc channel protocol
     app.propose_sub_channel(channel_details.clone(), contract_input)
         .await
         .unwrap();
 
     // Process the app's `Offer`.
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -88,7 +89,7 @@ async fn reconnecting_during_dlc_channel_setup() {
         .unwrap();
 
     // Process the coordinator's `Accept` and send `Confirm`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -125,7 +126,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the coordinator's second `Accept` and send `Confirm`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -135,7 +136,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the app's second `Confirm` message and send `Finalize`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -145,7 +146,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the coordinator's `Finalize` message and send `Revoke`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -155,7 +156,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the app's `Revoke` message.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -173,7 +174,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the app's `CloseOffer`.
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -187,7 +188,7 @@ async fn reconnecting_during_dlc_channel_setup() {
         .unwrap();
 
     // Process the coordinator's `CloseAccept` and send `CloseConfirm`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -224,7 +225,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the coordinator's second `CloseAccept` and send `CloseConfirm`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -234,7 +235,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the app's `CloseConfirm` and send `CloseFinalize`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -244,7 +245,7 @@ async fn reconnecting_during_dlc_channel_setup() {
     .unwrap();
 
     // Process the coordinator's `CloseFinalize`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -310,7 +311,7 @@ async fn can_lose_connection_before_processing_subchannel_close_finalize() {
         .unwrap();
 
     // Process `CloseOffer`
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -323,7 +324,7 @@ async fn can_lose_connection_before_processing_subchannel_close_finalize() {
         .unwrap();
 
     // Process `CloseAccept` and send `CloseConfirm`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -335,7 +336,7 @@ async fn can_lose_connection_before_processing_subchannel_close_finalize() {
     // Act
 
     // Process `CloseConfirm` and send `CloseFinalize`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -416,13 +417,14 @@ async fn can_lose_connection_before_processing_subchannel_accept() {
         .unwrap()
         .clone();
 
+    // TODO(bonomat): we should write tests for the dlc channel protocol
     coordinator
         .propose_sub_channel(channel_details.clone(), contract_input)
         .await
         .unwrap();
 
     // Process the coordinator's `Offer`.
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -463,7 +465,7 @@ async fn can_lose_connection_before_processing_subchannel_accept() {
     .unwrap();
 
     // Process the app's second `Accept` and send `Confirm`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -473,7 +475,7 @@ async fn can_lose_connection_before_processing_subchannel_accept() {
     .unwrap();
 
     // Process the coordinator's `Confirm` and send `Finalize`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -483,7 +485,7 @@ async fn can_lose_connection_before_processing_subchannel_accept() {
     .unwrap();
 
     // Process the app's `Finalize` and send `Revoke`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -493,7 +495,7 @@ async fn can_lose_connection_before_processing_subchannel_accept() {
     .unwrap();
 
     // Process the coordinator's `Revoke`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -558,7 +560,7 @@ async fn can_lose_connection_before_processing_subchannel_close_accept() {
         .unwrap();
 
     // Process `CloseOffer`.
-    let sub_channel = wait_until_dlc_channel_state(
+    let sub_channel = wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -599,7 +601,7 @@ async fn can_lose_connection_before_processing_subchannel_close_accept() {
     .unwrap();
 
     // Process second `CloseAccept` and send `CloseConfirm`.
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,
@@ -609,7 +611,7 @@ async fn can_lose_connection_before_processing_subchannel_close_accept() {
     .unwrap();
 
     // Process the coordinator's `CloseConfirm` and send `CloseFinalize`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &app,
         coordinator.info.pubkey,
@@ -619,7 +621,7 @@ async fn can_lose_connection_before_processing_subchannel_close_accept() {
     .unwrap();
 
     // Process the coordinator's `CloseFinalize`
-    wait_until_dlc_channel_state(
+    wait_until_sub_channel_state(
         Duration::from_secs(30),
         &coordinator,
         app.info.pubkey,

@@ -75,7 +75,7 @@ where
         }
     }
 
-    fn bdk_lock(&self) -> MutexGuard<bdk::Wallet<D>> {
+    pub fn bdk_lock(&self) -> MutexGuard<bdk::Wallet<D>> {
         self.inner.lock()
     }
 
@@ -182,6 +182,11 @@ where
         Ok(self.bdk_lock().get_balance()?)
     }
 
+    pub fn get_utxos(&self) -> Result<Vec<bdk::LocalUtxo>, Error> {
+        let utxos = self.bdk_lock().list_unspent()?;
+        Ok(utxos)
+    }
+
     /// Send funds to the given address.
     ///
     /// If `amount_sat_or_drain` is `0` the wallet will be drained, i.e., all available funds
@@ -282,9 +287,19 @@ where
             tracing::error!("Failed to store transaction {txid}. Error: {e:#}");
         }
 
-        self.blockchain
+        match self
+            .blockchain
             .broadcast(tx)
-            .map_err(|e| anyhow!("Failed to broadcast transaction {txid}. {e:#}"))?;
+            .map_err(|e| anyhow!("Failed to broadcast transaction {txid}. {e:#}"))
+        {
+            Ok(_) => {}
+            Err(error) => {
+                // TODO(bonomat): This currently fails. Probably because of the signing error.
+                // However, I noticed that if this funciton fails, the protocol fails somewhere,
+                // meaning we should filter out certain errors.
+                tracing::warn!("Failed at broadcasting the transaction {error:#}");
+            }
+        }
 
         Ok(txid)
     }
