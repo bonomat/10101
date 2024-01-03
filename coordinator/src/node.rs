@@ -30,6 +30,7 @@ use dlc_manager::contract::contract_input::ContractInput;
 use dlc_manager::contract::contract_input::ContractInputInfo;
 use dlc_manager::contract::contract_input::OracleInput;
 use dlc_manager::ContractId;
+use dlc_manager::DlcChannelId;
 use dlc_messages::ChannelMessage;
 use dlc_messages::Message;
 use dlc_messages::SubChannelMessage;
@@ -231,7 +232,7 @@ impl Node {
 
                 tracing::info!(
                     ?trade_params,
-                    channel_id = %hex::encode(channel_id.0),
+                    channel_id = %hex::encode(channel_id),
                     %peer_id,
                     "Closing position"
                 );
@@ -406,21 +407,21 @@ impl Node {
         conn: &mut PgConnection,
         position: &Position,
         closing_price: Decimal,
-        channel_id: ChannelId,
+        channel_id: DlcChannelId,
     ) -> Result<()> {
         let accept_settlement_amount =
             position.calculate_accept_settlement_amount(closing_price)?;
 
         tracing::debug!(
             ?position,
-            channel_id = %hex::encode(channel_id.0),
+            channel_id = %hex::encode(channel_id),
             %accept_settlement_amount,
             "Closing position of {accept_settlement_amount} with {}",
             position.trader.to_string()
         );
 
         self.inner
-            .propose_sub_channel_collaborative_settlement(channel_id, accept_settlement_amount)
+            .propose_dlc_channel_collaborative_settlement(channel_id, accept_settlement_amount)
             .await?;
 
         db::trades::insert(
@@ -519,7 +520,7 @@ impl Node {
     ) -> Result<TradeAction> {
         let trader_peer_id = trade_params.pubkey;
 
-        let subchannel = match self.inner.get_sub_channel_signed(&trader_peer_id)? {
+        let subchannel = match self.inner.get_established_dlc_channel(&trader_peer_id)? {
             None => return Ok(TradeAction::Open),
             Some(subchannel) => subchannel,
         };
@@ -546,7 +547,9 @@ impl Node {
         let action = if position_contracts + trade_contracts == Decimal::ZERO {
             TradeAction::Close(subchannel.channel_id)
         } else {
-            TradeAction::Resize(subchannel.channel_id)
+            // TODO(bonomat) implement channel resize on dlc-channels
+            // TradeAction::Resize(subchannel.channel_id)
+            unimplemented!()
         };
 
         Ok(action)
@@ -677,6 +680,24 @@ impl Node {
             }
         }
 
+        if let Message::Channel(ChannelMessage::SettleFinalize(finalize)) = &msg {
+            let channel_id_hex_string = finalize.channel_id.to_hex();
+            tracing::info!(
+                channel_id = channel_id_hex_string,
+                node_id = node_id.to_string(),
+                "DlcChannel settle protocol was finalized"
+            );
+            let mut connection = self.pool.get()?;
+            db::positions::Position::update_proposed_position(
+                &mut connection,
+                node_id.to_string(),
+                PositionState::Closed {
+                    // TODO(bonomat): we need to set the PNL here
+                    pnl: 0,
+                },
+            )?;
+        }
+
         if let Message::SubChannel(SubChannelMessage::Reject(reject)) = &msg {
             let channel_id_hex = reject.channel_id.to_hex();
             tracing::warn!(channel_id = channel_id_hex, "Subchannel offer was rejected");
@@ -768,7 +789,7 @@ fn update_order_and_match(
 
 pub enum TradeAction {
     Open,
-    Close(ChannelId),
+    Close(DlcChannelId),
     Resize(ChannelId),
 }
 

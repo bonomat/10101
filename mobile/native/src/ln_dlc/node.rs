@@ -196,7 +196,7 @@ impl Node {
                             .accept_sub_channel_collaborative_settlement(&channel_id)
                             .with_context(|| {
                                 format!(
-                                    "Failed to accept DLC channel close offer for channel {}",
+                                    "Failed to accept sub channel close offer for channel {}",
                                     hex::encode(channel_id.0)
                                 )
                             })?;
@@ -228,9 +228,20 @@ impl Node {
                         );
                         self.process_dlc_channel_offer(offer.temporary_channel_id, action)?;
                     }
+                    ChannelMessage::SettleOffer(offer) => {
+                        self.inner
+                            .accept_dlc_channel_collaborative_settlement(offer.channel_id)
+                            .with_context(|| {
+                                format!(
+                                    "Failed to accept DLC channel close offer for channel {}",
+                                    hex::encode(offer.channel_id)
+                                )
+                            })?;
+                    }
 
                     msg => {
                         tracing::warn!("Received {msg:?} - ignoring here");
+                        unimplemented!()
                     }
                 }
                 resp

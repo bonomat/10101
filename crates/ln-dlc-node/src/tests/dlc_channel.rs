@@ -3,6 +3,7 @@ use crate::tests::dummy_contract_input;
 use crate::tests::init_tracing;
 use crate::tests::wait_until;
 use bitcoin::Amount;
+use dlc_manager::channel::signed_channel::SignedChannelStateType;
 use dlc_manager::Storage;
 use std::time::Duration;
 
@@ -58,7 +59,7 @@ async fn vanilla_dlc_channel() {
     app.accept_dlc_channel_offer(&offered_channel.temporary_channel_id)
         .unwrap();
 
-    let _coordinator_signed_channel = wait_until(Duration::from_secs(30), || async {
+    let coordinator_signed_channel = wait_until(Duration::from_secs(30), || async {
         coordinator.process_incoming_messages()?;
 
         let dlc_channels = coordinator
@@ -86,4 +87,51 @@ async fn vanilla_dlc_channel() {
     })
     .await
     .unwrap();
+
+    coordinator
+        .propose_dlc_channel_collaborative_settlement(
+            coordinator_signed_channel.channel_id,
+            coordinator_dlc_collateral / 2,
+        )
+        .await
+        .unwrap();
+
+    tracing::debug!("Waiting for settle offer...");
+    let app_signed_channel = wait_until(Duration::from_secs(30), || async {
+        app.process_incoming_messages()?;
+
+        let dlc_channels = app
+            .dlc_manager
+            .get_store()
+            .get_signed_channels(Some(SignedChannelStateType::SettledReceived))?;
+
+        Ok(dlc_channels
+            .iter()
+            .find(|dlc_channel| dlc_channel.counter_party == coordinator.info.pubkey)
+            .cloned())
+    })
+    .await
+    .unwrap();
+
+    tracing::debug!("Accepting settle offer and waiting for being settled...");
+    app.accept_dlc_channel_collaborative_settlement(app_signed_channel.channel_id)
+        .unwrap();
+
+    let app_signed_channel = wait_until(Duration::from_secs(10), || async {
+        app.process_incoming_messages()?;
+
+        let dlc_channels = app
+            .dlc_manager
+            .get_store()
+            .get_signed_channels(Some(SignedChannelStateType::Settled))?;
+
+        Ok(dlc_channels
+            .iter()
+            .find(|dlc_channel| dlc_channel.counter_party == coordinator.info.pubkey)
+            .cloned())
+    })
+    .await
+    .unwrap();
+
+    dbg!(app_signed_channel.state);
 }
