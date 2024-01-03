@@ -143,26 +143,6 @@ class _FundWalletModalState extends State<FundWalletModal> {
                                 ),
                                 child: const Text("Pay the invoice with 10101 faucet"),
                               ),
-                              OutlinedButton(
-                                onPressed: _isPayInvoiceButtonDisabled
-                                    ? null
-                                    : () async {
-                                        setState(() => _isPayInvoiceButtonDisabled = true);
-                                        final faucetService = context.read<FaucetService>();
-                                        faucetService
-                                            .payInvoiceWithMakerFaucet(widget.invoice)
-                                            .catchError((error) {
-                                          setState(() => _isPayInvoiceButtonDisabled = false);
-                                          showSnackBar(
-                                              ScaffoldMessenger.of(context), error.toString());
-                                        });
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                                ),
-                                child: const Text("Pay the invoice with 10101 maker"),
-                              ),
                             ],
                           )
                         : QrImageView(
