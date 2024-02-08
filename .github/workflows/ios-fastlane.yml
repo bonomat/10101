@@ -192,4 +192,9 @@ jobs:
           just publish-testflight-fastlane
 
       - name: Check for COCOAPODS bug
+        if: always()
         run: cat  mobile/ios/Pods/Target\ Support\ Files/Pods-Runner/Pods-Runner-frameworks.sh
+
+      - name: Print fastlane gym logs
+        if: always()
+        run: cat /Users/runner/Library/Logs/gym/10101-test.log
