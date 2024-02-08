@@ -87,7 +87,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v3
         with:
@@ -95,8 +95,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.tag }}
 
-      - name: List Xcode installations
+      - name: List installations Xcode version
         run: sudo ls -1 /Applications | grep "Xcode"
+      - name: List used Xcode version
+        run: /usr/bin/xcodebuild -version
 
       - uses: subosito/flutter-action@v2
         with:
