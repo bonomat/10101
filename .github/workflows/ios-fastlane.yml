@@ -99,6 +99,12 @@ jobs:
         run: sudo ls -1 /Applications | grep "Xcode"
       - name: List used Xcode version
         run: /usr/bin/xcodebuild -version
+      - name: Select different xcode version
+        run: |
+          gem install xcode-install
+          xcversion select 15
+      - name: List used Xcode version
+        run: /usr/bin/xcodebuild -version
 
       - uses: subosito/flutter-action@v2
         with:
