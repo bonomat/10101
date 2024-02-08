@@ -95,9 +95,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.tag }}
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "14.2"
+      - name: List Xcode installations
+        run: sudo ls -1 /Applications | grep "Xcode"
 
       - uses: subosito/flutter-action@v2
         with:
